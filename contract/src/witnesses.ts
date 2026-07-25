@@ -18,24 +18,28 @@
  * as well as the single witness function that accesses it.
  */
 
-import { Ledger } from "./managed/bboard/contract/index.js";
+import { Ledger } from "./managed/profile/contract/index.js";
 import { WitnessContext } from "@midnight-ntwrk/midnight-js-protocol/compact-runtime";
 
 /* **********************************************************************
- * The only hidden state needed by the bulletin board contract is
- * the user's secret key.  Some of the library code and
+ * The only hidden state needed by the profile contract is
+ * the user's secret key. Some of the library code and
  * compiler-generated code is parameterized by the type of our
  * private state, so we define a type for it and a function to
  * make an object of that type.
  */
 
-export type BBoardPrivateState = {
+export type ProfilePrivateState = {
   readonly secretKey: Uint8Array;
 };
 
-export const createBBoardPrivateState = (secretKey: Uint8Array) => ({
+export type BBoardPrivateState = ProfilePrivateState;
+
+export const createProfilePrivateState = (secretKey: Uint8Array) => ({
   secretKey,
 });
+
+export const createBBoardPrivateState = createProfilePrivateState;
 
 /* **********************************************************************
  * The witnesses object for the bulletin board contract is an object

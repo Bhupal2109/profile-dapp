@@ -29,7 +29,7 @@ export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
           src="/logo-render.png"
           alt="logo-image"
           height={607}
-          style={{ position: 'absolute', zIndex: 1, left: '2vw', top: '5vh' }}
+          style={{ position: 'absolute', zIndex: 1, left: '2vw', top: '5vh', opacity: 0.18 }}
         />
         <Box
           sx={{

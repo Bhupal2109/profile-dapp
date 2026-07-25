@@ -28,6 +28,7 @@ import { setNetworkId, NetworkId } from '@midnight-ntwrk/midnight-js-network-id'
 import App from './App';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from './config/theme';
+import { CONTRACT_ADDRESS } from './config/contract';
 import '@midnight-ntwrk/dapp-connector-api';
 import * as pino from 'pino';
 import { DeployedBoardProvider } from './contexts';
@@ -43,6 +44,7 @@ export const logger = pino.pino({
 });
 
 logger.trace(`networkId = ${networkId}`);
+logger.trace(`contractAddressPlaceholder = ${CONTRACT_ADDRESS}`);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

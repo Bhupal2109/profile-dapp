@@ -26,11 +26,13 @@ import {
   Skeleton,
   Typography,
   TextField,
+  Stack,
+  Button,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import WriteIcon from '@mui/icons-material/EditNoteOutlined';
+import SaveIcon from '@mui/icons-material/SaveOutlined';
+import EditIcon from '@mui/icons-material/EditNoteOutlined';
 import CopyIcon from '@mui/icons-material/ContentPasteOutlined';
 import StopIcon from '@mui/icons-material/HighlightOffOutlined';
 import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
@@ -67,7 +69,8 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
   const [deployedBoardAPI, setDeployedBoardAPI] = useState<DeployedBBoardAPI>();
   const [errorMessage, setErrorMessage] = useState<string>();
   const [boardState, setBoardState] = useState<BBoardDerivedState>();
-  const [messagePrompt, setMessagePrompt] = useState<string>();
+  const [nameInput, setNameInput] = useState('');
+  const [bioInput, setBioInput] = useState('');
   const [isWorking, setIsWorking] = useState(!!boardDeployment$);
 
   // Two simple callbacks that call `resolve(...)` to either deploy or join a bulletin board
@@ -79,40 +82,27 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     [boardApiProvider],
   );
 
-  // Callback to handle the posting of a message. The message text is captured in the `messagePrompt`
-  // state, and we just need to forward it to the `post` method of the `DeployedBBoardAPI` instance
-  // that we received in the `deployedBoardAPI` state.
-  const onPostMessage = useCallback(async () => {
-    if (!messagePrompt) {
+  const onSaveProfile = useCallback(async () => {
+    if (!nameInput.trim() || !bioInput.trim()) {
+      setErrorMessage('Name and bio are required.');
       return;
     }
 
     try {
       if (deployedBoardAPI) {
         setIsWorking(true);
-        await deployedBoardAPI.post(messagePrompt);
+        if (boardState?.state === State.LIVE) {
+          await deployedBoardAPI.updateProfile(nameInput.trim(), bioInput.trim());
+        } else {
+          await deployedBoardAPI.setProfile(nameInput.trim(), bioInput.trim());
+        }
       }
     } catch (error: unknown) {
       setErrorMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setIsWorking(false);
     }
-  }, [deployedBoardAPI, setErrorMessage, setIsWorking, messagePrompt]);
-
-  // Callback to handle the taking down of a message. Again, we simply invoke the `takeDown` method
-  // of the `DeployedBBoardAPI` instance.
-  const onDeleteMessage = useCallback(async () => {
-    try {
-      if (deployedBoardAPI) {
-        setIsWorking(true);
-        await deployedBoardAPI.takeDown();
-      }
-    } catch (error: unknown) {
-      setErrorMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setIsWorking(false);
-    }
-  }, [deployedBoardAPI, setErrorMessage, setIsWorking]);
+  }, [bioInput, boardState?.state, deployedBoardAPI, nameInput]);
 
   const onCopyContractAddress = useCallback(async () => {
     if (deployedBoardAPI) {
@@ -156,14 +146,18 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
     // We need the board API as well as subscribing to its `state$` observable, so that we can invoke
     // the `post` and `takeDown` methods later.
     setDeployedBoardAPI(boardDeployment.api);
-    const subscription = boardDeployment.api.state$.subscribe(setBoardState);
+    const subscription = boardDeployment.api.state$.subscribe((state) => {
+      setBoardState(state);
+      setNameInput(state.profileName ?? '');
+      setBioInput(state.profileBio ?? '');
+    });
     return () => {
       subscription.unsubscribe();
     };
   }, [boardDeployment, setIsWorking, setErrorMessage, setDeployedBoardAPI]);
 
   return (
-    <Card sx={{ position: 'relative', width: 275, height: 300, minWidth: 275, minHeight: 300 }} color="primary">
+    <Card sx={{ position: 'relative', width: 360, minWidth: 360, minHeight: 420 }} color="primary">
       {!boardDeployment$ && (
         <EmptyCardContent onCreateBoardCallback={onCreateBoard} onJoinBoardCallback={onJoinBoard} />
       )}
@@ -188,80 +182,65 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
           <CardHeader
             avatar={
               boardState ? (
-                boardState.state === State.VACANT || (boardState.state === State.OCCUPIED && boardState.isOwner) ? (
-                  <LockOpenIcon data-testid="post-unlocked-icon" />
+                boardState.isOwner ? (
+                  <LockOpenIcon data-testid="profile-owned-icon" />
                 ) : (
-                  <LockIcon data-testid="post-locked-icon" />
+                  <LockIcon data-testid="profile-locked-icon" />
                 )
               ) : (
                 <Skeleton variant="circular" width={20} height={20} />
               )
             }
             titleTypographyProps={{ color: 'primary' }}
-            title={toShortFormatContractAddress(deployedBoardAPI?.deployedContractAddress) ?? 'Loading...'}
-            action={
-              deployedBoardAPI?.deployedContractAddress ? (
-                <IconButton title="Copy contract address" onClick={onCopyContractAddress}>
-                  <CopyIcon fontSize="small" />
-                </IconButton>
-              ) : (
-                <Skeleton variant="circular" width={20} height={20} />
-              )
-            }
+            title={deployedBoardAPI?.deployedContractAddress ? 'Profile contract' : 'Preparing profile'}
+            subheader={toShortFormatContractAddress(deployedBoardAPI?.deployedContractAddress) ?? 'Loading...'}
           />
           <CardContent>
             {boardState ? (
-              boardState.state === State.OCCUPIED ? (
-                <Typography data-testid="board-posted-message" sx={{ minHeight: 160 }} color="primary">
-                  {boardState.message}
-                </Typography>
-              ) : (
+              <Stack spacing={2}>
+                <Typography variant="subtitle2" color="primary">Profile status</Typography>
                 <TextField
-                  id="message-prompt"
-                  data-testid="board-message-prompt"
-                  variant="outlined"
-                  focused
+                  label="Name"
+                  value={nameInput}
+                  onChange={(event) => setNameInput(event.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="Bio"
+                  value={bioInput}
+                  onChange={(event) => setBioInput(event.target.value)}
                   fullWidth
                   multiline
-                  minRows={6}
-                  maxRows={6}
-                  placeholder="Message to post"
+                  minRows={4}
                   size="small"
-                  color="primary"
-                  slotProps={{ htmlInput: { style: { color: 'black' } } }}
-                  onChange={(e) => {
-                    setMessagePrompt(e.target.value);
-                  }}
                 />
-              )
+                <Typography variant="caption" color="text.secondary">
+                  {boardState.state === State.LIVE ? 'Your profile is live on-chain.' : 'Create the first profile entry.'}
+                </Typography>
+              </Stack>
             ) : (
-              <Skeleton variant="rectangular" width={245} height={160} />
+              <Skeleton variant="rectangular" width={320} height={220} />
             )}
           </CardContent>
-          <CardActions>
+          <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
             {deployedBoardAPI ? (
               <React.Fragment>
-                <IconButton
-                  title="Post message"
-                  data-testid="board-post-message-btn"
-                  disabled={boardState?.state === State.OCCUPIED || !messagePrompt?.length}
-                  onClick={onPostMessage}
+                <Button
+                  data-testid="board-save-profile-btn"
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  onClick={onSaveProfile}
+                  disabled={!nameInput.trim() || !bioInput.trim() || !deployedBoardAPI}
                 >
-                  <WriteIcon />
-                </IconButton>
-                <IconButton
-                  title="Take down message"
-                  data-testid="board-take-down-message-btn"
-                  disabled={
-                    boardState?.state === State.VACANT || (boardState?.state === State.OCCUPIED && !boardState.isOwner)
-                  }
-                  onClick={onDeleteMessage}
-                >
-                  <DeleteIcon />
+                  {boardState?.state === State.LIVE ? 'Update profile' : 'Create profile'}
+                </Button>
+                <IconButton title="Copy contract address" onClick={onCopyContractAddress}>
+                  <CopyIcon fontSize="small" />
                 </IconButton>
               </React.Fragment>
             ) : (
-              <Skeleton variant="rectangular" width={80} height={20} />
+              <Skeleton variant="rectangular" width={120} height={36} />
             )}
           </CardActions>
         </React.Fragment>

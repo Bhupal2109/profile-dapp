@@ -11,6 +11,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "esModuleInterop": false,

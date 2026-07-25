@@ -19,7 +19,7 @@
  * @packageDocumentation
  */
 
-import * as BBoard from '../../contract/src/managed/bboard/contract/index.js';
+import * as ProfileContract from '../../contract/src/managed/profile/contract/index.js';
 
 import { type ContractAddress, convertFieldToBytes } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import { type Logger } from 'pino';
@@ -46,8 +46,8 @@ export interface DeployedBBoardAPI {
   readonly deployedContractAddress: ContractAddress;
   readonly state$: Observable<BBoardDerivedState>;
 
-  post: (message: string) => Promise<void>;
-  takeDown: () => Promise<void>;
+  setProfile: (name: string, bio: string) => Promise<void>;
+  updateProfile: (name: string, bio: string) => Promise<void>;
 }
 
 /**
@@ -80,13 +80,13 @@ export class BBoardAPI implements DeployedBBoardAPI {
       [
         // Combine public (ledger) state with...
         providers.publicDataProvider.contractStateObservable(this.deployedContractAddress, { type: 'latest' }).pipe(
-          map((contractState) => BBoard.ledger(contractState.data)),
+          map((contractState) => ProfileContract.ledger(contractState.data)),
           tap((ledgerState) =>
             logger?.trace({
               ledgerStateChanged: {
                 ledgerState: {
                   ...ledgerState,
-                  state: ledgerState.state === BBoard.State.OCCUPIED ? 'occupied' : 'vacant',
+                  state: ledgerState.state === ProfileContract.State.LIVE ? 'live' : 'empty',
                   owner: toHex(ledgerState.owner),
                 },
               },
@@ -101,14 +101,15 @@ export class BBoardAPI implements DeployedBBoardAPI {
       ],
       // ...and combine them to produce the required derived state.
       (ledgerState, privateState) => {
-        const hashedSecretKey = BBoard.pureCircuits.publicKey(
+        const hashedSecretKey = ProfileContract.pureCircuits.publicKey(
           privateState.secretKey,
           convertFieldToBytes(32, ledgerState.sequence, 'api/src/index.ts'),
         );
 
         return {
           state: ledgerState.state,
-          message: ledgerState.message.value,
+          profileName: ledgerState.profileName.value,
+          profileBio: ledgerState.profileBio.value,
           sequence: ledgerState.sequence,
           isOwner: toHex(ledgerState.owner) === toHex(hashedSecretKey),
         };
@@ -135,36 +136,28 @@ export class BBoardAPI implements DeployedBBoardAPI {
    * @remarks
    * This method can fail during local circuit execution if the bulletin board is currently occupied.
    */
-  async post(message: string): Promise<void> {
-    this.logger?.info(`postingMessage: ${message}`);
+  async setProfile(name: string, bio: string): Promise<void> {
+    this.logger?.info(`settingProfile: ${name}`);
 
-    const txData = await this.deployedContract.callTx.post(message);
+    const txData = await this.deployedContract.callTx.setProfile(name, bio);
 
     this.logger?.trace({
       transactionAdded: {
-        circuit: 'post',
+        circuit: 'setProfile',
         txHash: txData.public.txHash,
         blockHeight: txData.public.blockHeight,
       },
     });
   }
 
-  /**
-   * Attempts to take down any currently posted message on the bulletin board.
-   *
-   * @remarks
-   * This method can fail during local circuit execution if the bulletin board is currently vacant,
-   * or if the currently posted message isn't owned by the owner computed from the current private
-   * state.
-   */
-  async takeDown(): Promise<void> {
-    this.logger?.info('takingDownMessage');
+  async updateProfile(name: string, bio: string): Promise<void> {
+    this.logger?.info(`updatingProfile: ${name}`);
 
-    const txData = await this.deployedContract.callTx.takeDown();
+    const txData = await this.deployedContract.callTx.updateProfile(name, bio);
 
     this.logger?.trace({
       transactionAdded: {
-        circuit: 'takeDown',
+        circuit: 'updateProfile',
         txHash: txData.public.txHash,
         blockHeight: txData.public.blockHeight,
       },

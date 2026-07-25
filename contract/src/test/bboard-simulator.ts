@@ -21,17 +21,13 @@ import {
   createConstructorContext,
   CostModel,
 } from "@midnight-ntwrk/compact-runtime";
-import {
-  Contract,
-  type Ledger,
-  ledger,
-} from "../managed/bboard/contract/index.js";
+import { Contract, type Ledger, ledger } from "../managed/profile/contract/index.js";
 import { type BBoardPrivateState, witnesses } from "../witnesses.js";
 
 /**
  * Serves as a testbed to exercise the contract in tests
  */
-export class BBoardSimulator {
+export class ProfileSimulator {
   readonly contract: Contract<BBoardPrivateState>;
   circuitContext: CircuitContext<BBoardPrivateState>;
 
@@ -74,18 +70,20 @@ export class BBoardSimulator {
     return this.circuitContext.currentPrivateState;
   }
 
-  public post(message: string): Ledger {
-    // Update the current context to be the result of executing the circuit.
-    this.circuitContext = this.contract.impureCircuits.post(
+  public setProfile(name: string, bio: string): Ledger {
+    this.circuitContext = this.contract.impureCircuits.setProfile(
       this.circuitContext,
-      message,
+      name,
+      bio,
     ).context;
     return ledger(this.circuitContext.currentQueryContext.state);
   }
 
-  public takeDown(): Ledger {
-    this.circuitContext = this.contract.impureCircuits.takeDown(
+  public updateProfile(name: string, bio: string): Ledger {
+    this.circuitContext = this.contract.impureCircuits.updateProfile(
       this.circuitContext,
+      name,
+      bio,
     ).context;
     return ledger(this.circuitContext.currentQueryContext.state);
   }

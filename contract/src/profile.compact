@@ -1,0 +1,61 @@
+// This file is part of midnightntwrk/example-bboard.
+// Copyright (C) Midnight Foundation
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+export enum State {
+  EMPTY,
+  LIVE
+}
+
+export ledger state: State;
+
+export ledger profileName: Maybe<Opaque<"string">>;
+
+export ledger profileBio: Maybe<Opaque<"string">>;
+
+export ledger sequence: Counter;
+
+export ledger owner: Bytes<32>;
+
+constructor() {
+  state = State.EMPTY;
+  profileName = none<Opaque<"string">>();
+  profileBio = none<Opaque<"string">>();
+  sequence.increment(1);
+}
+
+witness localSecretKey(): Bytes<32>;
+
+export circuit setProfile(name: Opaque<"string">, bio: Opaque<"string">): [] {
+  assert(state == State.EMPTY, "Attempted to create a profile that already exists");
+  owner = disclose(publicKey(localSecretKey(), sequence as Field as Bytes<32>));
+  profileName = disclose(some<Opaque<"string">>(name));
+  profileBio = disclose(some<Opaque<"string">>(bio));
+  state = State.LIVE;
+}
+
+export circuit updateProfile(name: Opaque<"string">, bio: Opaque<"string">): [] {
+  assert(state == State.LIVE, "Attempted to update a profile that does not exist");
+  assert(owner == publicKey(localSecretKey(), sequence as Field as Bytes<32>), "Attempted to update a profile that is not owned by the current wallet");
+  profileName = disclose(some<Opaque<"string">>(name));
+  profileBio = disclose(some<Opaque<"string">>(bio));
+}
+
+export circuit publicKey(sk: Bytes<32>, sequence: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "profile:pk:"), sequence, sk]);
+}
