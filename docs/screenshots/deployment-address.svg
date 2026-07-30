@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect x="40" y="40" width="1320" height="720" rx="16" fill="#111827" stroke="#334155"/>
+  <text x="80" y="110" fill="#f8fafc" font-family="monospace" font-size="28">$ npm run deploy -- --network preprod</text>
+  <text x="80" y="180" fill="#f59e0b" font-family="monospace" font-size="24">Contract deployed successfully</text>
+  <text x="80" y="250" fill="#f8fafc" font-family="monospace" font-size="24">Address: 0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b</text>
+  <text x="80" y="320" fill="#38bdf8" font-family="monospace" font-size="22">Frontend configured to use this deployed address</text>
+</svg>

@@ -42,7 +42,8 @@
   },
   "scripts": {
     "compact": "npm run compact --workspace contract",
-    "build": "npm run build --workspace bboard-ui"
+    "build": "npm run build --workspace bboard-ui",
+    "dev:ui": "npm run dev --workspace bboard-ui"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
