@@ -6,7 +6,11 @@ import {
   createConstructorContext,
   CostModel,
 } from "@midnight-ntwrk/compact-runtime";
-import { Contract, type Ledger, ledger } from "../managed/profile/contract/index.js";
+import {
+  Contract,
+  type Ledger,
+  ledger,
+} from "../managed/profile/contract/index.js";
 import { type ProfilePrivateState, witnesses } from "../witnesses.js";
 
 export class ProfileSimulator {
@@ -15,14 +19,21 @@ export class ProfileSimulator {
 
   constructor(secretKey: Uint8Array) {
     this.contract = new Contract<ProfilePrivateState>(witnesses);
-    const { currentPrivateState, currentContractState, currentZswapLocalState } = this.contract.initialState(
+    const {
+      currentPrivateState,
+      currentContractState,
+      currentZswapLocalState,
+    } = this.contract.initialState(
       createConstructorContext({ secretKey }, "0".repeat(64)),
     );
     this.circuitContext = {
       currentPrivateState,
       currentZswapLocalState,
       costModel: CostModel.initialCostModel(),
-      currentQueryContext: new QueryContext(currentContractState.data, sampleContractAddress()),
+      currentQueryContext: new QueryContext(
+        currentContractState.data,
+        sampleContractAddress(),
+      ),
     };
   }
 
@@ -39,17 +50,33 @@ export class ProfileSimulator {
   }
 
   public setProfile(name: string, bio: string): Ledger {
-    this.circuitContext = this.contract.impureCircuits.setProfile(this.circuitContext, name, bio).context;
+    this.circuitContext = this.contract.impureCircuits.setProfile(
+      this.circuitContext,
+      name,
+      bio,
+    ).context;
     return ledger(this.circuitContext.currentQueryContext.state);
   }
 
   public updateProfile(name: string, bio: string): Ledger {
-    this.circuitContext = this.contract.impureCircuits.updateProfile(this.circuitContext, name, bio).context;
+    this.circuitContext = this.contract.impureCircuits.updateProfile(
+      this.circuitContext,
+      name,
+      bio,
+    ).context;
     return ledger(this.circuitContext.currentQueryContext.state);
   }
 
   public publicKey(): Uint8Array {
-    const sequence = convertFieldToBytes(32, this.getLedger().sequence, "profile-simulator.ts");
-    return this.contract.circuits.publicKey(this.circuitContext, this.getPrivateState().secretKey, sequence).result;
+    const sequence = convertFieldToBytes(
+      32,
+      this.getLedger().sequence,
+      "profile-simulator.ts",
+    );
+    return this.contract.circuits.publicKey(
+      this.circuitContext,
+      this.getPrivateState().secretKey,
+      sequence,
+    ).result;
   }
 }

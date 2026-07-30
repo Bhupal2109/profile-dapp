@@ -21,7 +21,11 @@ import {
   createConstructorContext,
   CostModel,
 } from "@midnight-ntwrk/compact-runtime";
-import { Contract, type Ledger, ledger } from "../managed/profile/contract/index.js";
+import {
+  Contract,
+  type Ledger,
+  ledger,
+} from "../managed/profile/contract/index.js";
 import { type BBoardPrivateState, witnesses } from "../witnesses.js";
 
 /**

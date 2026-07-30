@@ -22,8 +22,10 @@ describe("Profile smart contract", () => {
 
     const ledgerState = simulator.getLedger();
     expect(ledgerState.sequence).toEqual(1n);
-    expect(ledgerState.profileName).toEqual("Ada");
-    expect(ledgerState.profileBio).toEqual("Builder of proofs");
+    expect(ledgerState.profileName.is_some).toEqual(true);
+    expect(ledgerState.profileName.value).toEqual("Ada");
+    expect(ledgerState.profileBio.is_some).toEqual(true);
+    expect(ledgerState.profileBio.value).toEqual("Builder of proofs");
     expect(ledgerState.owner).toEqual(simulator.publicKey());
     expect(ledgerState.state).toEqual(State.LIVE);
   });
@@ -34,8 +36,12 @@ describe("Profile smart contract", () => {
     simulator.updateProfile("Grace", "Researcher and cryptographer");
 
     const ledgerState = simulator.getLedger();
-    expect(ledgerState.profileName).toEqual("Grace");
-    expect(ledgerState.profileBio).toEqual("Researcher and cryptographer");
+    expect(ledgerState.profileName.is_some).toEqual(true);
+    expect(ledgerState.profileName.value).toEqual("Grace");
+    expect(ledgerState.profileBio.is_some).toEqual(true);
+    expect(ledgerState.profileBio.value).toEqual(
+      "Researcher and cryptographer",
+    );
     expect(ledgerState.owner).toEqual(simulator.publicKey());
     expect(ledgerState.sequence).toEqual(1n);
   });

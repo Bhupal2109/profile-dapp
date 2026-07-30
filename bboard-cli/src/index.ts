@@ -33,7 +33,7 @@ import {
   type PrivateStateId,
 } from '../../api/src/index';
 import { type WalletFacade } from '@midnight-ntwrk/wallet-sdk-facade';
-import { ledger, type Ledger, State } from '../../contract/src/managed/bboard/contract/index.js';
+import { ledger, type Ledger, State } from '../../contract/src/managed/profile/contract/index.js';
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
@@ -125,10 +125,12 @@ const displayLedgerState = async (
   if (ledgerState === null) {
     logger.info(`There is no bulletin board contract deployed at ${contractAddress}`);
   } else {
-    const boardState = ledgerState.state === State.OCCUPIED ? 'occupied' : 'vacant';
-    const latestMessage = !ledgerState.message.is_some ? 'none' : ledgerState.message.value;
+    const boardState = ledgerState.state === State.LIVE ? 'live' : 'empty';
+    const latestName = !ledgerState.profileName.is_some ? 'none' : ledgerState.profileName.value;
+    const latestBio = !ledgerState.profileBio.is_some ? 'none' : ledgerState.profileBio.value;
     logger.info(`Current state is: '${boardState}'`);
-    logger.info(`Current message is: '${latestMessage}'`);
+    logger.info(`Current profile name is: '${latestName}'`);
+    logger.info(`Current profile bio is: '${latestBio}'`);
     logger.info(`Current sequence is: ${ledgerState.sequence}`);
     logger.info(`Current owner is: '${toHex(ledgerState.owner)}'`);
   }
@@ -158,10 +160,12 @@ const displayDerivedState = (ledgerState: BBoardDerivedState | undefined, logger
   if (ledgerState === undefined) {
     logger.info(`No bulletin board state currently available`);
   } else {
-    const boardState = ledgerState.state === State.OCCUPIED ? 'occupied' : 'vacant';
-    const latestMessage = ledgerState.state === State.OCCUPIED ? ledgerState.message : 'none';
+    const boardState = ledgerState.state === State.LIVE ? 'live' : 'empty';
+    const latestName = ledgerState.profileName ?? 'none';
+    const latestBio = ledgerState.profileBio ?? 'none';
     logger.info(`Current state is: '${boardState}'`);
-    logger.info(`Current message is: '${latestMessage}'`);
+    logger.info(`Current profile name is: '${latestName}'`);
+    logger.info(`Current profile bio is: '${latestBio}'`);
     logger.info(`Current sequence is: ${ledgerState.sequence}`);
     logger.info(`Current owner is: '${ledgerState.isOwner ? 'you' : 'not you'}'`);
   }
@@ -175,12 +179,11 @@ const displayDerivedState = (ledgerState: BBoardDerivedState | undefined, logger
 
 const MAIN_LOOP_QUESTION = `
 You can do one of the following:
-  1. Post a message
-  2. Take down your message
-  3. Display the current ledger state (known by everyone)
-  4. Display the current private state (known only to this DApp instance)
-  5. Display the current derived state (known only to this DApp instance)
-  6. Exit
+  1. Create or update a profile
+  2. Display the current ledger state (known by everyone)
+  3. Display the current private state (known only to this DApp instance)
+  4. Display the current derived state (known only to this DApp instance)
+  5. Exit
 Which would you like to do? `;
 
 const mainLoop = async (providers: BBoardProviders, rli: Interface, logger: Logger): Promise<void> => {
@@ -199,23 +202,21 @@ const mainLoop = async (providers: BBoardProviders, rli: Interface, logger: Logg
       try {
         switch (choice) {
           case '1': {
-            const message = await rli.question(`What message do you want to post? `);
-            await bboardApi.post(message);
+            const name = await rli.question('What name do you want to use? ');
+            const bio = await rli.question('What bio do you want to use? ');
+            await bboardApi.setProfile(name, bio);
             break;
           }
           case '2':
-            await bboardApi.takeDown();
-            break;
-          case '3':
             await displayLedgerState(providers, bboardApi.deployedContract, logger);
             break;
-          case '4':
+          case '3':
             await displayPrivateState(providers, logger);
             break;
-          case '5':
+          case '4':
             displayDerivedState(currentState, logger);
             break;
-          case '6':
+          case '5':
             logger.info('Exiting...');
             return;
           default:
@@ -311,7 +312,7 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
       }
     }
 
-    const zkConfigProvider = new NodeZkConfigProvider<'post' | 'takeDown'>(config.zkConfigPath);
+    const zkConfigProvider = new NodeZkConfigProvider<'setProfile' | 'updateProfile'>(config.zkConfigPath);
     const providers: BBoardProviders = {
       privateStateProvider: levelPrivateStateProvider<PrivateStateId, BBoardPrivateState>({
         privateStateStoreName: config.privateStateStoreName,

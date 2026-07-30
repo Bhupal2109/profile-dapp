@@ -23,7 +23,10 @@ import * as Witnesses from "./witnesses";
 
 export const CompiledBBoardContractContract = CompiledContract.make<
   CompiledProfileContract.Contract<Witnesses.BBoardPrivateState>
->("Profile", CompiledProfileContract.Contract<Witnesses.BBoardPrivateState>).pipe(
+>(
+  "Profile",
+  CompiledProfileContract.Contract<Witnesses.BBoardPrivateState>,
+).pipe(
   CompiledContract.withWitnesses(Witnesses.witnesses),
   CompiledContract.withCompiledFileAssets("./managed/profile"),
 );

@@ -32,7 +32,6 @@ import {
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import SaveIcon from '@mui/icons-material/SaveOutlined';
-import EditIcon from '@mui/icons-material/EditNoteOutlined';
 import CopyIcon from '@mui/icons-material/ContentPasteOutlined';
 import StopIcon from '@mui/icons-material/HighlightOffOutlined';
 import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
@@ -198,7 +197,9 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
           <CardContent>
             {boardState ? (
               <Stack spacing={2}>
-                <Typography variant="subtitle2" color="primary">Profile status</Typography>
+                <Typography variant="subtitle2" color="primary">
+                  Profile status
+                </Typography>
                 <TextField
                   label="Name"
                   value={nameInput}
@@ -216,7 +217,9 @@ export const Board: React.FC<Readonly<BoardProps>> = ({ boardDeployment$ }) => {
                   size="small"
                 />
                 <Typography variant="caption" color="text.secondary">
-                  {boardState.state === State.LIVE ? 'Your profile is live on-chain.' : 'Create the first profile entry.'}
+                  {boardState.state === State.LIVE
+                    ? 'Your profile is live on-chain.'
+                    : 'Create the first profile entry.'}
                 </Typography>
               </Stack>
             ) : (
