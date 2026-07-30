@@ -6,7 +6,7 @@ A privacy-preserving Midnight profile DApp where users can create or update a pr
 
 | Network | Contract Address |
 |---------|------------------|
-| Preprod | `<YOUR_DEPLOYED_CONTRACT_ADDRESS>` |
+| Preprod | `0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b` |
 
 ## Features
 
@@ -19,6 +19,8 @@ A privacy-preserving Midnight profile DApp where users can create or update a pr
 ## What This Project Does
 
 This application lets a user publish a verifiable profile record to a Midnight contract. The public ledger stores the profile metadata, while the wallet ownership proof remains private and is validated by the Compact contract during updates.
+
+The Compact contract source lives in [contract/src/profile.compact](contract/src/profile.compact) and [contract/src/bboard.compact](contract/src/bboard.compact), and the generated managed bindings are stored under [contract/src/managed](contract/src/managed).
 
 ## Privacy Model
 
