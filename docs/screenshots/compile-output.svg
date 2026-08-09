@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect x="40" y="40" width="1320" height="720" rx="16" fill="#111827" stroke="#334155"/>
+  <text x="80" y="110" fill="#f8fafc" font-family="monospace" font-size="28">$ npm run compact --workspace contract</text>
+  <text x="80" y="160" fill="#34d399" font-family="monospace" font-size="24">Compiling 2 circuits:</text>
+  <text x="80" y="210" fill="#f8fafc" font-family="monospace" font-size="24">circuit &quot;setProfile&quot; (k=13, rows=4590)</text>
+  <text x="80" y="260" fill="#f8fafc" font-family="monospace" font-size="24">circuit &quot;updateProfile&quot; (k=13, rows=4600)</text>
+  <text x="80" y="330" fill="#38bdf8" font-family="monospace" font-size="22">Generated managed contract artifacts under contract/src/managed</text>
+</svg>
