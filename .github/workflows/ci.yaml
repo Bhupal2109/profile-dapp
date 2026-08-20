@@ -62,3 +62,21 @@ jobs:
         working-directory: bboard-ui
         run: |
           npm run ci
+
+      - name: Install hello-world UI dependencies
+        working-directory: ui
+        run: npm install
+
+      - name: Typecheck hello-world UI
+        working-directory: ui
+        run: npx tsc --noEmit
+
+      - name: Build hello-world UI
+        working-directory: ui
+        run: npm run build -- --mode preview
+        env:
+          VITE_NETWORK_ID: preview
+          VITE_CONTRACT_ADDRESS: ${{ secrets.VITE_CONTRACT_ADDRESS || '23329775f6214e5e610b4bd300a9a498afc16b6b291a286430f38981d55f7763' }}
+          VITE_INDEXER_URL: https://indexer.preview.midnight.network/api/v4/graphql
+          VITE_INDEXER_WS_URL: wss://indexer.preview.midnight.network/api/v4/graphql/ws
+          VITE_PROOF_SERVER_URL: https://lace-proof-pub.preview.midnight.network
